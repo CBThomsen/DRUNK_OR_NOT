@@ -1,6 +1,7 @@
 import numpy as np
 import pickle as cPickle
 import os
+import random
 from scipy import misc
 from PIL import Image
 import Resizer
@@ -26,7 +27,7 @@ def pickle(path='Data', max_size=800, file = 'pickle', split = 0.6):
         for fname in os.listdir(path + '/' + filename):
 
             i += 1
-            if i > 10:
+            if i > 100:
                 break
 
             label_vectors.append(label_vector(fname))
@@ -44,13 +45,25 @@ def pickle(path='Data', max_size=800, file = 'pickle', split = 0.6):
             zeros[x_leeway:image_array.shape[0]+x_leeway, y_leeway:image_array.shape[1]+y_leeway, :] = image_array
 
             loaded_images.append(zeros)
+            
+            
+            image.close()
 
-    normalized_images = np.floor_divide(loaded_images, np.mean(loaded_images))
+
+    #loaded_imagesxd = np.array(loaded_images)
+    mean = np.mean(loaded_images)
+    print('mean', mean)
+    for img in loaded_images:
+        img //= mean
+    normalized_images = np.array(loaded_images)
+    print('normalized')
     Y_norm = np.array(label_vectors)
 
     ndata = normalized_images.shape[0]
     permutation = list(np.random.permutation(ndata))
     X_shuffled = normalized_images[permutation, :].reshape(ndata,max_size,max_size,3)
+    #random.shuffle(normalized_images)
+    #X_shuffled = normalized_images.reshape(ndata,max_size,max_size,3)
     print(X_shuffled.shape)
     Y_shuffled = Y_norm[permutation, :].reshape((normalized_images.shape[0], Y_norm.shape[1]))
     ntrain = int(split * 100 * ndata // 100)
