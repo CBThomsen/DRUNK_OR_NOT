@@ -10,7 +10,7 @@ with open("model.json",'r') as f:
     modelJSON = f.read()
 
 model = model_from_json(modelJSON)
-model.load_weights("model_weights.hdf5")
+model.load_weights("model.h5")
 
 # All new operations will be in test mode from now on.
 K.set_learning_phase(0)
@@ -37,7 +37,7 @@ tf.train.write_graph(K.get_session().graph, temp_dir, input_graph_name)
 input_graph_path = os.path.join(temp_dir, input_graph_name)
 input_saver_def_path = ""
 input_binary = False
-output_node_names = "Softmax" # model dependent
+output_node_names = "dense_1/Softmax" # model dependent
 restore_op_name = "save/restore_all"
 filename_tensor_name = "save/Const:0"
 output_graph_path = os.path.join(temp_dir, output_graph_name)

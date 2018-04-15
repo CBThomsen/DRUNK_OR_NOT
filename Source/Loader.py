@@ -5,17 +5,22 @@ import random
 from scipy import misc
 from PIL import Image
 import Resizer
-
+import PIL
 #def images()
 
-    #img = Image.open("lena.png")
-    #pix = np.array(img)
-    #changed_img = Resizer.shrink(pix, 512, 40)  # Change - Issue #1
-    #resized = Image.fromarray(changed_img, 'RGB')
-    #resized.save("lena_resize.png")
+scale = 0.3
+
+for filename in next(os.walk('Data'))[1]:
+
+    for fname in os.listdir('Data' + '/' + filename):
+
+        img = Image.open('Data' + '/' + filename + '/' + fname)
+        height, width = img.size
+        img.thumbnail((height*scale, width*scale))
+        img.save('Resized'+'Data' + '/' + filename + '/' + fname)
 
 
-def pickle(path='Data', max_size=800, file = 'pickle', split = 0.6):
+def pickle(path='ResizedData', max_size=100, file = 'pickle', split = 0.6):
 
     loaded_images = []
     label_vectors = []
@@ -26,46 +31,68 @@ def pickle(path='Data', max_size=800, file = 'pickle', split = 0.6):
 
         for fname in os.listdir(path + '/' + filename):
 
-            i += 1
-            if i > 100:
-                break
+
 
             label_vectors.append(label_vector(fname))
             image = Image.open(path + '/' + filename + '/' + fname)
-            y_leeway, x_leeway = np.floor_divide(np.subtract(max_size, image.size), 2)
+            y_leeway1, x_leeway1 = np.floor_divide(np.subtract(max_size, image.size), 2)
+            y_leeway = max_size-image.size[0] - y_leeway1
+            x_leeway = max_size-image.size[1] - x_leeway1
             image_array = np.asarray(image)
-            zeros = np.zeros([max_size, max_size, 3])
 
-            print(fname)
+            height, width = image.size
+            zeros = np.zeros([max_size, max_size, 3])
+            #zeros = np.zeros([height, width, 3])
+
 
             if np.max(image.size) > max_size:
-                raise ValueError('Picture: ' + fname + ' is too large')
-                pass
+                print('Picture: ' + fname + ' is too large')
+                continue
+            zeros = np.pad(image_array, ((x_leeway, x_leeway1), (y_leeway, y_leeway1), (0,0)), 'constant')
 
-            zeros[x_leeway:image_array.shape[0]+x_leeway, y_leeway:image_array.shape[1]+y_leeway, :] = image_array
+            """
+            img = Image.fromarray(zeros, 'RGB')
+            img.save('tis.png')
+            img.show()
+            """
+            #zeros[0:width, 0:height, 0:3] = image_array
+            print(zeros.shape)
+            """
+            img = Image.fromarray(zeros, 'RGB')
+            img.save('anus.png')
+            img.show()
+            """
 
             loaded_images.append(zeros)
             
-            
+
             image.close()
 
 
     #loaded_imagesxd = np.array(loaded_images)
     mean = np.mean(loaded_images)
     print('mean', mean)
-    for img in loaded_images:
-        img //= mean
+    #img = Image.fromarray(loaded_images[0], 'RGB')
+    #img.save('pis.png')
+   # img.show()
     normalized_images = np.array(loaded_images)
+
+
+    img = Image.fromarray(normalized_images[0], 'RGB')
+    img.save('pis.png')
+    img.show()
     print('normalized')
     Y_norm = np.array(label_vectors)
 
-    ndata = normalized_images.shape[0]
+    ndata = len(normalized_images)
     permutation = list(np.random.permutation(ndata))
-    X_shuffled = normalized_images[permutation, :].reshape(ndata,max_size,max_size,3)
+
+    X_shuffled = normalized_images[permutation]
+
     #random.shuffle(normalized_images)
     #X_shuffled = normalized_images.reshape(ndata,max_size,max_size,3)
     print(X_shuffled.shape)
-    Y_shuffled = Y_norm[permutation, :].reshape((normalized_images.shape[0], Y_norm.shape[1]))
+    Y_shuffled = Y_norm[permutation]
     ntrain = int(split * 100 * ndata // 100)
     X_train = X_shuffled[0:ntrain, :]
     Y_train = Y_shuffled[0:ntrain, :]
