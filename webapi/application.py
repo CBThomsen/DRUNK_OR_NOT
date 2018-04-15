@@ -1,6 +1,7 @@
 from tempfile import NamedTemporaryFile
 
 from bottle import route, run, template, default_app, request
+from tensortflow import graph_pb2
 
 application = default_app()
 
@@ -14,6 +15,10 @@ def do_upload():
 
     with NamedTemporaryFile('w+b') as f:
         img.save(f)
+
+        graph_def = graph_pb2.GraphDef()
+        with open('trump_graph.pb', 'rb') as fg:
+            graph_def.ParseFromString(fg.read())
 
     return 'Trump'
 
